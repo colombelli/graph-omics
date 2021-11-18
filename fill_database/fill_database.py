@@ -1,4 +1,8 @@
-# import pandas as pd
+"""
+	To use, start de database (tutorial in https://neo4j.com/videos/getting-started-with-neo4j-desktop-1-2-7-on-linux/) 
+	and download [gene, mirna, meth]_proc in the same path of the script. Then, simply run. To generate .txt files
+	with the cypher queries, uncomment the code blocks.
+"""
 import numpy as np
 from neo4j import GraphDatabase
 
