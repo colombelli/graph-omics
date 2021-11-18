@@ -94,9 +94,9 @@ def create_expression_edges(expression_grid, db):
 
 def generate_tumoral_expression_query(gene_id, sample_barcode, score, db):
     create_tumoral_expression_query = "MATCH (sample:Sample {tcgaBarcode:'" + sample_barcode + "'}) " \
-                                                                                               "MATCH (gene:Gene {id: " + gene_id + "}) CREATE (sample) " \
-                                                                                                                                    "-[tumex: HAS_TUMORAL_EXPRESSION_OF" + score + "]-> (gene) " \
-                                                                                                                                                                                   "RETURN sample, tumex, gene"
+                                      "MATCH (gene:Gene {id: " + gene_id + "}) CREATE (sample) " \
+                                      "-[tumex: HAS_TUMORAL_EXPRESSION_OF" + score + "]-> (gene) " \
+                                      "RETURN sample, tumex, gene"
     db.run_query(create_tumoral_expression_query)
     """
     with open('create_tumoral_expression_edges.txt', 'a') as tumoral_expression_edges_file:
@@ -106,9 +106,9 @@ def generate_tumoral_expression_query(gene_id, sample_barcode, score, db):
 
 def generate_normal_expression_query(gene_id, sample_barcode, score, db):
     create_normal_expression_query = "MATCH (sample:Sample {tcgaBarcode:'" + sample_barcode + "'}) " \
-                                                                                              "MATCH (gene:Gene {id: " + gene_id + "}) CREATE (sample) " \
-                                                                                                                                   "-[norex: HAS_NORMAL_EXPRESSION_OF" + score + "]-> (gene) " \
-                                                                                                                                                                                 "RETURN sample, norex, gene"
+                                     "MATCH (gene:Gene {id: " + gene_id + "}) CREATE (sample) " \
+                                     "-[norex: HAS_NORMAL_EXPRESSION_OF" + score + "]-> (gene) " \
+                                     "RETURN sample, norex, gene"
     db.run_query(create_normal_expression_query)
     """
     with open('create_normal_expression_edges.txt', 'a') as normal_expression_edges_file:
@@ -122,8 +122,6 @@ def insert_from_gene_proc(db):
     create_gene_nodes(sg[gene_lin], db)
     create_sample_nodes(column(sg, sample_col), db)
     create_expression_edges(sg, db)
-
-
 # END GENE -------------------------------------------------------------------------------------------------------------
 
 
@@ -134,7 +132,7 @@ def create_mirna_nodes(mirna_list, db):
         if mirna != "index" and mirna != "class":
             mirna_id = mirna.split('|')[0]
             mirna_mimat = mirna.split('|')[1]
-            create_mirna_query = "MERGE (mirna:miRNA {id: '" + mirna_id + "', mimat: '" + mirna_mimat + "'}) RETURN mirna"
+            create_mirna_query = "MERGE (mirna:miRNA {id: '"+mirna_id+"', mimat: '"+mirna_mimat+"'}) RETURN mirna"
             db.run_query(create_mirna_query)
             """
             with open('create_mirna_nodes.txt', 'a') as mirna_nodes_file:
@@ -161,9 +159,9 @@ def create_mirna_expression_edges(expression_grid, db):
 
 def generate_mirna_tumoral_expression_query(mirna_id, sample_barcode, score, db):
     create_tumoral_expression_query = "MATCH (sample:Sample {tcgaBarcode:'" + sample_barcode + "'}) " \
-                                                                                               "MATCH (mirna:miRNA {id: '" + mirna_id + "'}) " \
-                                                                                                                                        "CREATE (sample) -[tumex: HAS_TUMORAL_EXPRESSION_OF" + score + "]-> (mirna) " \
-                                                                                                                                                                                                       "RETURN sample, tumex, mirna"
+                                      "MATCH (mirna:miRNA {id: '" + mirna_id + "'}) " \
+                                      "CREATE (sample) -[tumex: HAS_TUMORAL_EXPRESSION_OF" + score + "]-> (mirna) " \
+                                      "RETURN sample, tumex, mirna"
     db.run_query(create_tumoral_expression_query)
     """
     with open('create_mirna_tumoral_expression_edges.txt', 'a') as tumoral_expression_edges_file:
@@ -172,10 +170,10 @@ def generate_mirna_tumoral_expression_query(mirna_id, sample_barcode, score, db)
 
 
 def generate_mirna_normal_expression_query(mirna_id, sample_barcode, score, db):
-    create_normal_expression_query = "MATCH (sample:Sample {tcgaBarcode:'" + sample_barcode + "'}) " \
-                                                                                              "MATCH (mirna:miRNA {id: '" + mirna_id + "'}) " \
-                                                                                                                                       "CREATE (sample) -[norex: HAS_NORMAL_EXPRESSION_OF" + score + "]-> (mirna) " \
-                                                                                                                                                                                                     "RETURN sample, norex, mirna"
+    create_normal_expression_query = "MATCH (sample:Sample {tcgaBarcode:'"+sample_barcode+"'}) " \
+                                     "MATCH (mirna:miRNA {id: '"+mirna_id+"'}) " \
+                                     "CREATE (sample) -[norex: HAS_NORMAL_EXPRESSION_OF" + score + "]-> (mirna) " \
+                                     "RETURN sample, norex, mirna"
     db.run_query(create_normal_expression_query)
     """
     with open('create_mirna_normal_expression_edges.txt', 'a') as normal_expression_edges_file:
@@ -189,8 +187,6 @@ def insert_from_mirna_proc(db):
     create_sample_nodes(column(sm, sample_col), db)
     create_mirna_nodes(sm[mirna_lin], db)
     create_mirna_expression_edges(sm, db)
-
-
 # END miRNA ------------------------------------------------------------------------------------------------------------
 
 
@@ -200,7 +196,7 @@ def create_gene_nodes_from_symbol(genes_list, db):
 
     for gene_symbol in genes_list:
         if gene_symbol != "index" and gene_symbol != "class" and gene_symbol != "":
-            create_gene_query = "MERGE (gene:Gene {symbol: '" + gene_symbol + "'}) RETURN gene"
+            create_gene_query = "MERGE (gene:Gene {symbol: '"+gene_symbol+"'}) RETURN gene"
             db.run_query(create_gene_query)
             """
             with open('create_meth_gene_nodes.txt', 'a') as gene_nodes_file:
@@ -226,10 +222,10 @@ def create_methylation_edges(methylation_grid, db):
 
 
 def generate_tumoral_methylation_query(gene_symbol, sample_barcode, score, db):
-    create_tumoral_methylation_query = "MATCH (sample:Sample {tcgaBarcode:'" + sample_barcode + "'}) " \
-                                                                                                "MATCH (gene:Gene {symbol: '" + gene_symbol + "'}) " \
-                                                                                                                                              "CREATE (sample) -[tumeth: HAS_TUMORAL_METHYLATION_OF" + score + "]-> (gene) " \
-                                                                                                                                                                                                               "RETURN sample, tumeth, gene"
+    create_tumoral_methylation_query = "MATCH (sample:Sample {tcgaBarcode:'"+sample_barcode+"'}) " \
+                                       "MATCH (gene:Gene {symbol: '"+gene_symbol+"'}) " \
+                                       "CREATE (sample) -[tumeth: HAS_TUMORAL_METHYLATION_OF" + score + "]-> (gene) " \
+                                       "RETURN sample, tumeth, gene"
     db.run_query(create_tumoral_methylation_query)
     """
     with open('create_tumoral_methylation_edges.txt', 'a') as tumoral_methylation_edges_file:
@@ -238,10 +234,10 @@ def generate_tumoral_methylation_query(gene_symbol, sample_barcode, score, db):
 
 
 def generate_normal_methylation_query(gene_symbol, sample_barcode, score, db):
-    create_normal_methylation_query = "MATCH (sample:Sample {tcgaBarcode:'" + sample_barcode + "'}) " \
-                                                                                               "MATCH (gene:Gene {symbol: '" + gene_symbol + "'}) " \
-                                                                                                                                             "CREATE (sample) -[nometh: HAS_NORMAL_METHYLATION_OF" + score + "]-> (gene) " \
-                                                                                                                                                                                                             "RETURN sample, nometh, gene"
+    create_normal_methylation_query = "MATCH (sample:Sample {tcgaBarcode:'"+sample_barcode+"'}) " \
+                                      "MATCH (gene:Gene {symbol: '"+gene_symbol+"'}) " \
+                                      "CREATE (sample) -[nometh: HAS_NORMAL_METHYLATION_OF" + score + "]-> (gene) " \
+                                      "RETURN sample, nometh, gene"
     db.run_query(create_normal_methylation_query)
     """
     with open('create_normal_methylation_edges.txt', 'a') as normal_methylation_edges_file:
@@ -255,8 +251,6 @@ def insert_from_meth_proc(db):
     create_gene_nodes_from_symbol(sgm[gene_lin], db)
     create_sample_nodes(column(sgm, sample_col), db)
     create_methylation_edges(sgm, db)
-
-
 # END methylation ------------------------------------------------------------------------------------------------------
 
 
