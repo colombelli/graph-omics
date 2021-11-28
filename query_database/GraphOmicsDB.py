@@ -161,6 +161,47 @@ class GraphOmicsDB:
         return values
 
 
+
+    def avg_onco_tsg(self):
+        with self.driver.session() as session:
+            values = session.read_transaction(self._avg_onco_tsg)
+        return values
+    @staticmethod
+    def _avg_onco_tsg(tx):
+        query = """
+        CALL {
+            MATCH (g:Gene)-[:IS {annotation: "oncogene"}]->(ncg:NCGgene)
+            MATCH (:Patient) -[onco_te:HAS_TUMORAL_EXPRESSION_OF] -> (g)
+            RETURN avg(toFloat(onco_te.expression)) AS OP
+        }
+
+        CALL {
+            MATCH (g:Gene)-[:IS {annotation: "oncogene"}]->(ncg:NCGgene)
+            MATCH (:Patient) -[onco_ne:HAS_NORMAL_EXPRESSION_OF] -> (g)
+            RETURN avg(toFloat(onco_ne.expression)) AS ON
+        }
+
+        CALL {
+            MATCH (g:Gene)-[:IS {annotation: "tsg"}]->(ncg:NCGgene)
+            MATCH (:Patient) -[tsg_te:HAS_TUMORAL_EXPRESSION_OF] -> (g)
+            RETURN avg(toFloat(tsg_te.expression)) AS TP
+        }
+
+        CALL {
+            MATCH (g:Gene)-[:IS {annotation: "tsg"}]->(ncg:NCGgene)
+            MATCH (:Patient) -[tsg_ne:HAS_NORMAL_EXPRESSION_OF] -> (g)
+            RETURN avg(toFloat(tsg_ne.expression)) AS TN
+        }
+
+        RETURN OP, ON, TP, TN
+        """
+        result = tx.run(query)
+        values = [record.data() for record in result]
+        return values[0]
+
+
+
+
     def by_stage_most_expressed_genes_ppi_net(self):
         global gene_entrezGeneId
         result = self.by_stage_10_most_expressed_genes()
