@@ -8,6 +8,47 @@ class GraphOmicsDB:
     def close(self):
         self.driver.close()
 
+
+    def merge_fix_ncg7(self):
+        with self.driver.session() as session:
+            session.write_transaction(self._merge_fix_ncg7)
+        return
+    @staticmethod
+    def _merge_fix_ncg7(tx):
+        query = """match (g1:Gene) 
+                match(g2:Gene) 
+                where g1.entrezGeneId = g2.entrezGeneId and id(g1) <> id(g2) and g2.ncg7CancerType is not null 
+                with [g1,g2] as gs
+                with * limit 1
+                call apoc.refactor.mergeNodes(gs) yield node 
+                return node"""
+        while True:
+            r = tx.run(query)
+            print(r.values())
+        return 
+
+    
+    def merge_fix_symbol(self):
+        with self.driver.session() as session:
+            session.write_transaction(self._merge_fix_symbol)
+        return
+    @staticmethod
+    def _merge_fix_symbol(tx):
+        query = """match (g1:Gene) 
+                match(g2:Gene) 
+                where g1.entrezGeneId = g2.entrezGeneId and id(g1) <> id(g2) and g2.geneSymbol is not null 
+                with [g1,g2] as gs
+                with * limit 1
+                call apoc.refactor.mergeNodes(gs) yield node 
+                return node"""
+        counter=0
+        while True:
+            counter+=1
+            print(counter)
+            tx.run(query)
+        return 
+
+
     def count_genes(self):
         with self.driver.session() as session:
             values, info = session.read_transaction(self._count_genes)
