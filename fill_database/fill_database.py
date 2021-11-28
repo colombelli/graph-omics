@@ -6,6 +6,10 @@ with the cypher queries, uncomment the code blocks.
 import numpy as np
 from neo4j import GraphDatabase
 import time
+import flask
+import requests
+import os
+from flask import Flask, url_for, json, request, render_template, app
 
 
 class GraphDatabaseConnection:
@@ -254,7 +258,11 @@ def insert_from_meth_proc(db):
 # END methylation ------------------------------------------------------------------------------------------------------
 
 
+
+
+
 if __name__ == "__main__":
+
     database = GraphDatabaseConnection("bolt://localhost:7687", "neo4j", "sgbd_senha")
     try:
         print("Clearing database...")
