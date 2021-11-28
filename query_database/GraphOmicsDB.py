@@ -161,20 +161,20 @@ class GraphOmicsDB:
         return values
 
 
-	def by_stage_most_expressed_genes_ppi_net(self):
-	    global gene_entrezGeneId
-	    result = self.by_stage_10_most_expressed_genes()
-	    with self.driver.session() as session:
-	        for s in result.keys():
-	            i = 0
-	            for gene in result[stage]:
-	                gene_entrezGeneId = gene['gene']['entrezGeneId']
-	                result[s][i]['lst_genes_ppi'] = session.read_transaction(self._stage_gene_ppi_net)
-	                i += 1
-	    return result
-	@staticmethod
-	def _stage_gene_ppi_net(tx):
-	    query = """MATCH (:Gene {entrezGeneId: "%s"}) -[:ENCODE]-> (:Protein) 
-	    -[:INTERACTS_WITH]-> (:Protein) -[:ENCODE]- (gene:Gene) RETURN gene""" % (gene_entrezGeneId)
-	    result = tx.run(query)
-	    return [record.data() for record in result]
+    def by_stage_most_expressed_genes_ppi_net(self):
+        global gene_entrezGeneId
+        result = self.by_stage_10_most_expressed_genes()
+        with self.driver.session() as session:
+            for s in result.keys():
+                i = 0
+                for gene in result[stage]:
+                    gene_entrezGeneId = gene['gene']['entrezGeneId']
+                    result[s][i]['lst_genes_ppi'] = session.read_transaction(self._stage_gene_ppi_net)
+                    i += 1
+        return result
+    @staticmethod
+    def _stage_gene_ppi_net(tx):
+        query = """MATCH (:Gene {entrezGeneId: "%s"}) -[:ENCODE]-> (:Protein) 
+        -[:INTERACTS_WITH]-> (:Protein) -[:ENCODE]- (gene:Gene) RETURN gene""" % (gene_entrezGeneId)
+        result = tx.run(query)
+        return [record.data() for record in result]
