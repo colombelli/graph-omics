@@ -215,7 +215,7 @@ class GraphOmicsDB:
     @staticmethod
     def _stage_gene_ppi_net(tx):
         query = """MATCH (:Gene {entrezGeneId: "%s"}) -[:ENCODE]-> (:Protein) 
-        -[:INTERACTS_WITH]-> (:Protein) -[:ENCODE]- (gene:Gene) RETURN gene""" % (gene_entrezGeneId)
+        -[:INTERACTS_WITH]-> (:Protein) -[:ENCODE]- (gene:Gene) RETURN gene LIMIT 50""" % (gene_entrezGeneId)
         result = tx.run(query)
         return [record.data() for record in result]
 
