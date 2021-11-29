@@ -238,7 +238,7 @@ class GraphOmicsDB:
                 }
 
                 return gene, expression ORDER BY expression
-                LIMIT 20
+                LIMIT 50
             }
 
             with gene
