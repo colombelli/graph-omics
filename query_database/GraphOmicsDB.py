@@ -228,92 +228,92 @@ class GraphOmicsDB:
     @staticmethod
     def _mirna_target_gene_min_max(tx):
         query = """
-        call{
             call{
+                call{
 
-                call {
-                    MATCH (:Patient) -[ne:HAS_NORMAL_EXPRESSION_OF]-> (gn:Gene) return gn as gene, avg(toFloat(ne.expression)) as expression
-                    UNION ALL
-                    MATCH (:Patient) -[te:HAS_TUMORAL_EXPRESSION_OF]-> (gt:Gene) return gt as gene, avg(toFloat(te.expression)) as expression
+                    call {
+                        MATCH (:Patient) -[ne:HAS_NORMAL_EXPRESSION_OF]-> (gn:Gene) return gn as gene, avg(toFloat(ne.expression)) as expression
+                        UNION ALL
+                        MATCH (:Patient) -[te:HAS_TUMORAL_EXPRESSION_OF]-> (gt:Gene) return gt as gene, avg(toFloat(te.expression)) as expression
+                    }
+
+                    return gene, expression ORDER BY expression
+                    LIMIT 50
                 }
 
-                return gene, expression ORDER BY expression
-                LIMIT 50
-            }
-
-            with gene
-            match (mirna:miRNA)-[:MIRTARBASE_REGULATES]->(gene)
-            return distinct(mirna.mirnaId) as mirnas, gene.entrezGeneId as genes
-        }
-
-        call {
-            with mirnas
-            call {
-                with mirnas
-                match (p:Patient)-[ne:HAS_NORMAL_EXPRESSION_OF]->(mi:miRNA)
-                where mi.mirnaId in mirnas
-                return min(toFloat(ne.expression)) as mirna_min_expr
-
-                union
-
-                with mirnas
-                match (p:Patient)-[te:HAS_TUMORAL_EXPRESSION_OF]->(mi:miRNA)
-                where mi.mirnaId in mirnas
-                return min(toFloat(te.expression)) as mirna_min_expr
+                with gene
+                match (mirna:miRNA)-[:MIRTARBASE_REGULATES]->(gene)
+                return distinct(mirna.mirnaId) as mirnas, gene.entrezGeneId as genes
             }
 
             call {
                 with mirnas
-                match (p:Patient)-[ne:HAS_NORMAL_EXPRESSION_OF]->(mi:miRNA)
-                where mi.mirnaId in mirnas
-                return max(toFloat(ne.expression)) as mirna_max_expr
+                call {
+                    with mirnas
+                    match (p:Patient)-[ne:HAS_NORMAL_EXPRESSION_OF]->(mi:miRNA)
+                    where mi.mirnaId in mirnas
+                    return min(toFloat(ne.expression)) as mirna_min_expr
 
-                union
+                    union
 
-                with mirnas
-                match (p:Patient)-[te:HAS_TUMORAL_EXPRESSION_OF]->(mi:miRNA)
-                where mi.mirnaId in mirnas
-                return max(toFloat(te.expression)) as mirna_max_expr
+                    with mirnas
+                    match (p:Patient)-[te:HAS_TUMORAL_EXPRESSION_OF]->(mi:miRNA)
+                    where mi.mirnaId in mirnas
+                    return min(toFloat(te.expression)) as mirna_min_expr
+                }
+
+                call {
+                    with mirnas
+                    match (p:Patient)-[ne:HAS_NORMAL_EXPRESSION_OF]->(mi:miRNA)
+                    where mi.mirnaId in mirnas
+                    return max(toFloat(ne.expression)) as mirna_max_expr
+
+                    union
+
+                    with mirnas
+                    match (p:Patient)-[te:HAS_TUMORAL_EXPRESSION_OF]->(mi:miRNA)
+                    where mi.mirnaId in mirnas
+                    return max(toFloat(te.expression)) as mirna_max_expr
+                }
+
+                return min(mirna_min_expr) as mirna_min_expr , max(mirna_max_expr) as mirna_max_expr
             }
 
-            return min(mirna_min_expr) as mirna_min_expr , max(mirna_max_expr) as mirna_max_expr
-        }
 
-
-        call {
-            with genes
             call {
                 with genes
-                match (p:Patient)-[ne:HAS_NORMAL_EXPRESSION_OF]->(g:Gene)
-                where g.entrezGeneId in genes
-                return min(toFloat(ne.expression)) as gene_min_expr
+                call {
+                    with genes
+                    match (p:Patient)-[ne:HAS_NORMAL_EXPRESSION_OF]->(g:Gene)
+                    where g.entrezGeneId in genes
+                    return min(toFloat(ne.expression)) as gene_min_expr
 
-                union
+                    union
 
-                with genes
-                match (p:Patient)-[te:HAS_NORMAL_EXPRESSION_OF]->(g:Gene)
-                where g.entrezGeneId in genes
-                return min(toFloat(te.expression)) as gene_min_expr
+                    with genes
+                    match (p:Patient)-[te:HAS_NORMAL_EXPRESSION_OF]->(g:Gene)
+                    where g.entrezGeneId in genes
+                    return min(toFloat(te.expression)) as gene_min_expr
+                }
+
+                call {
+                    with genes
+                    match (p:Patient)-[ne:HAS_NORMAL_EXPRESSION_OF]->(g:Gene)
+                    where g.entrezGeneId in genes
+                    return max(toFloat(ne.expression)) as gene_max_expr
+
+                    union
+
+                    with genes
+                    match (p:Patient)-[te:HAS_NORMAL_EXPRESSION_OF]->(g:Gene)
+                    where g.entrezGeneId in genes
+                    return max(toFloat(te.expression)) as gene_max_expr
+                }
+
+            return min(gene_min_expr) as gene_min_expr, max(gene_max_expr) as gene_max_expr 
             }
 
-            call {
-                with genes
-                match (p:Patient)-[ne:HAS_NORMAL_EXPRESSION_OF]->(g:Gene)
-                where g.entrezGeneId in genes
-                return max(toFloat(ne.expression)) as gene_max_expr
-
-                union
-
-                with genes
-                match (p:Patient)-[te:HAS_NORMAL_EXPRESSION_OF]->(g:Gene)
-                where g.entrezGeneId in genes
-                return max(toFloat(te.expression)) as gene_max_expr
-            }
-
-        return min(gene_min_expr) as gene_min_expr, max(gene_max_expr) as gene_max_expr 
-        }
-
-        return distinct mirnas, genes, mirna_min_expr, mirna_max_expr, gene_min_expr, gene_max_expr
+            return distinct mirnas as miRNA, genes as gene, mirna_min_expr as miRNA_ne_menor_eg, mirna_max_expr as miRNA_ne_maior_eg, gene_min_expr as menor_eg, gene_max_expr as maior_eg
         """
         result = tx.run(query)
         return [record.data() for record in result]
